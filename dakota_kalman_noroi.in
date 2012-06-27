@@ -6,15 +6,15 @@ strategy,
 method,
 	multidim_parameter_study		
 	  output verbose
-	  partitions = 5 0 0 2  
+	  partitions = 6 0 0 2  
 
 model,
 	single
 
 variables,
 	discrete_design_set_integer = 3
-	  num_set_values              6     1         1
-	  set_values    0 4 30 40 45 60     0         1
+	  num_set_values              7     1         1
+	  set_values    0 60 120 150 180 240 300     0         1
 	  descriptors         'uniform' 'roi' 'algebra'
 	discrete_design_set_real = 1
 	  set_values    1.25 5.0 20.0
@@ -26,12 +26,13 @@ interface,
           named = 'kalmanNoROI'
 	  file_save file_tag
 	  #analysis_driver = '/data/fuentes/biotex/090318_751642_treat/setup_driver'
-	  analysis_driver = '/data/fuentes/FullRepo/github/KalmanLocalization/moonen_par_driver'
+	  #analysis_driver = '/data/fuentes/FullRepo/github/KalmanLocalization/moonen_par_driver'
 	  #analysis_driver = '/work/00131/fuentes/data/biotex/KalmanLocalization/ranger_par_driver'
 	  #analysis_driver = '/data/fuentes/FullRepo/github/KalmanLocalization/moonen_par_driver'
 	  #analysis_driver = '/work/00131/fuentes/biotex/090318_751642_treat/lonestar_par_driver'
 	  #analysis_driver = '/work/00131/fuentes/data/biotex/090318_751642_treat/ranger_par_driver'
-	  parameters_file = 'kalman.in'
+	  analysis_driver = '/work/01642/jyung/data/biotex/090318_751642_treat/KalmanLocalization/SDATemp/ranger_par_driver'
+          parameters_file = 'kalman.in'
 	  results_file = 'kalman.out'
 
 responses,

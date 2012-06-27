@@ -10,7 +10,7 @@ echo "#$ -N kalman.$num"                                                        
 echo "#$ -j y"                                                                  >> $qsubfile
 echo "#$ -o \$JOB_NAME.log\$JOB_ID"                                             >> $qsubfile
 echo "#$ -q normal "                                                            >> $qsubfile
-echo "#$ -l h_rt=02:00:00 "                                                     >> $qsubfile
+echo "#$ -l h_rt=20:00:00 "                                                     >> $qsubfile
 echo "#$ -cwd "                                                                 >> $qsubfile
 echo "#$ -V"                                                                    >> $qsubfile
 echo "set -x # Echo commands, use set echo with csh"                            >> $qsubfile

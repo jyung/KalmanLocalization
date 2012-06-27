@@ -21,8 +21,8 @@ def GetNumPyData(filename):
   return vti_array 
 
 rootdir = "%s/kalmanNoROI/" % os.getcwd()
-ntime=128
-deltat = 5.0
+ntime=596
+deltat = 1.0
 
 rmsValues = []
 normrmsValues = []

@@ -94,11 +94,15 @@ def KalmanFilterMRTI(**kwargs):
   getpot = femLibrary.PylibMeshGetPot(PetscOptions) 
   #getpot.SetIniValue( "thermal_conductivity/k_0_probe","1.0e8") 
   #getpot.SetIniValue( "thermal_conductivity/k_0_tumor","1.0e8") 
-  getpot.SetIniValue( "perfusion/w_0_healthy", "9.0"  ) 
+  getpot.SetIniValue( "thermal_conductivity/k_0_healthy","0.45" )
+  #getpot.SetIniValue( "perfusion/w_0_healthy", "9.0"  )
+  getpot.SetIniValue( "perfusion/w_0_healthy", "4.0"  ) 
   # tumor = applicator
   getpot.SetIniValue( "perfusion/w_0_tumor", "0.0"  ) 
-  getpot.SetIniValue( "optical/mu_a_healthy",  "5.0e2") 
-  getpot.SetIniValue( "optical/mu_s_healthy","140.0e2") 
+  #getpot.SetIniValue( "optical/mu_a_healthy",  "5.0e2") 
+  getpot.SetIniValue( "optical/mu_a_healthy",  "3.2e2")
+  #getpot.SetIniValue( "optical/mu_s_healthy","140.0e2") 
+  getpot.SetIniValue( "optical/mu_s_healthy","4.69e4")
   getpot.SetIniValue( "optical/anfact"      ,  "0.88" ) 
   # from Duck table 2.15
   getpot.SetIniValue( "material/specific_heat","3840.0" ) 
@@ -118,9 +122,10 @@ def KalmanFilterMRTI(**kwargs):
   workDir = "/work/00131/jyung/data/biotex/KalmanLocalization/"
   workDir = "/work/00131/fuentes/data/biotex/090318_751642_treat/"
   workDir = "/data/fuentes/biotex/090318_751642_treat/"
+  workDir = "/work/01642/jyung/data/biotex/090318_751642_treat/KalmanLocalization/SDATemp/"
 
-  dataRoot = "%s/Processed/s1%02d%03d" % ( workDir, kwargs['cv']['uniform'] , kwargs['cv']['roi'] )
-  tmapRoot = "%s/Processed/s1%02d%03d" % ( workDir,          0              ,          0          )
+  dataRoot = "%s/Processed/s1%03d%03d" % ( workDir, kwargs['cv']['uniform'] , kwargs['cv']['roi'] )
+  tmapRoot = "%s/Processed/s1%03d%03d" % ( workDir,          0              ,          0          )
 
   # load vtk modules to read imaging
   import vtk 
@@ -128,7 +133,7 @@ def KalmanFilterMRTI(**kwargs):
   # read imaging data geometry that will be used to project FEM data onto
   #vtkReader = vtk.vtkXMLImageDataReader() 
   vtkReader = vtk.vtkDataSetReader() 
-  vtkReader.SetFileName('%s/tmap.0000.vtk' % tmapRoot )
+  vtkReader.SetFileName('%s/tmap.fem_data.0001.e.0000.vtk' % tmapRoot )
   vtkReader.Update()
   templateImage = vtkReader.GetOutput()
   dimensions = templateImage.GetDimensions()
@@ -139,7 +144,8 @@ def KalmanFilterMRTI(**kwargs):
   print spacing, origin, dimensions
   femImaging = femLibrary.PytttkImaging(getpot, dimensions ,origin,spacing) 
 
-  image_roi = [[130,155],[123,148],[0,0]] 
+  #image_roi = [[130,155],[123,148],[0,0]]
+  image_roi = [[120,145],[123,148],[0,0]]
   size_roi  = [ image_roi[0][1]-image_roi[0][0]+1,
                 image_roi[1][1]-image_roi[1][0]+1,
                 image_roi[2][1]-image_roi[2][0]+1]
@@ -165,9 +171,12 @@ def KalmanFilterMRTI(**kwargs):
   #Setup Affine Transformation for registration
   AffineTransform = vtk.vtkTransform()
   #AffineTransform.Translate( [0.050,0.080, origin[2]] )
-  AffineTransform.Translate( [0.051,0.080, 0.0509] )
-  AffineTransform.RotateZ( 29.0 )
-  AffineTransform.RotateY( 86.0 )
+  #AffineTransform.Translate( [0.051,0.080, 0.0509] )
+  AffineTransform.Translate( [0.038,0.075, 0.050] )
+  #AffineTransform.RotateZ( 29.0 )
+  AffineTransform.RotateZ( 0.0 )
+  #AffineTransform.RotateY( 86.0 )
+  AffineTransform.RotateY( 270.0 )
   #AffineTransform.RotateY( 90.0 )
   AffineTransform.RotateX(  0.0 )
   AffineTransform.Scale([1.,1.,1.])
@@ -186,12 +195,14 @@ def KalmanFilterMRTI(**kwargs):
   
   # add the data structures for the Background System Solve
   # set deltat, number of time steps, power profile, and add system
-  acquisitionTime = 5.00
+  #acquisitionTime = 5.00
+  acquisitionTime = 1.00
   deltat = acquisitionTime 
-  ntime  = 128 
+  #ntime  = 128 
+  ntime = 596
   eqnSystems =  femLibrary.PylibMeshEquationSystems(femMesh,getpot)
-  getpot.SetIniPower(1, [ [17,27,39,69,ntime],[0.0,4.05,0.0,10.05,0.0] ])
-  
+  #getpot.SetIniPower(1, [ [17,27,39,69,ntime],[0.0,4.05,0.0,10.05,0.0] ])
+  getpot.SetIniPower(1, [ [35,135,195,ntime],[0.0,4.05,0.0,10.05,0.0] ]) 
   # instantiate Kalman class
   kalmanFilter = None
   if ( kwargs['cv']['algebra'] == 0  ):
@@ -297,17 +308,18 @@ def KalmanFilterMRTI(**kwargs):
   
      # read MRTI Data
      vtkTmapReader = vtk.vtkDataSetReader() 
-     vtkTmapReader.SetFileName('%s/tmap.%04d.vtk' % (tmapRoot,timeID) )
+     vtkTmapReader.SetFileName('%s/tmap.fem_data.0001.e.%04d.vtk' % (tmapRoot,timeID) )
      vtkTmapReader.Update() 
      tmap_cells = vtkTmapReader.GetOutput().GetPointData()
-     tmap_array = u_init + vtkNumPy.vtk_to_numpy( tmap_cells.GetArray('scalars') ) 
+     #tmap_array = u_init + vtkNumPy.vtk_to_numpy( tmap_cells.GetArray('scalars') ) 
+     tmap_array = vtkNumPy.vtk_to_numpy( tmap_cells.GetArray('scalars') )
      tmap_vec = PETSc.Vec().createWithArray( tmap_array, comm=PETSc.COMM_SELF)
      femImaging.ProjectImagingToFEMMesh("MRTIMean",u_init,tmap_vec,eqnSystems)  
   
      # read in SNR base uncertainty measurement
      measurementCov = 2.0 * 2.0 ; 
      vtkSTDReader = vtk.vtkDataSetReader() 
-     vtkSTDReader.SetFileName('%s/snruncert.%04d.vtk' % (dataRoot,timeID) )
+     vtkSTDReader.SetFileName('%s/snruncert.fem_data.0001.e.%04d.vtk' % (dataRoot,timeID) )
      vtkSTDReader.Update() 
      std_cells = vtkSTDReader.GetOutput().GetPointData() 
      snr_array = vtkNumPy.vtk_to_numpy(std_cells.GetArray('scalars')) 
